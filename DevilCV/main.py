@@ -4,22 +4,20 @@ from DevilCV.utils.custom_types.Color import HSVColorRange, HSVColor
 from DevilCV.utils.custom_types.Detection import Detections
 
 def main():
-    # Define color ranges for detection
-    color_ranges = [
-        HSVColorRange(HSVColor(0, 87, 123), HSVColor(12, 255, 215)),
-        # blue
-        HSVColorRange(HSVColor(110, 50, 50), HSVColor(130, 255, 255)),
-    ]
 
-    detector_names = ["Red", "Blue"]
-    multi_detector = MultiColorDetector(color_ranges, detector_names, 1000)
+    detectors = {
+        "Red": [HSVColorRange(HSVColor(160, 100, 100), HSVColor(179, 255, 255)), HSVColorRange(HSVColor(0, 100, 100), HSVColor(20, 255, 255))],
+        "Blue": [HSVColorRange(HSVColor(100, 100, 92), HSVColor(124, 255, 255))],
+    }
 
-    stream = Stream(source=0, exposure=-4, multi_detectors=[multi_detector], show=True)
+    multi_detector = MultiColorDetector(detectors, 1000)
+
+    stream = Stream(source=0, exposure=-6, multi_detectors=[multi_detector], show=True)
 
     def callback(center_detections: Detections):
         print(center_detections)
 
-    stream.start(callback)
+    stream.start(callback, record=True)
 
 if __name__ == "__main__":
     main()

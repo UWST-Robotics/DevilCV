@@ -8,14 +8,22 @@ class Stream:
     def __init__(self, source: int, exposure: int, multi_detectors: list[MultiDetector], show: bool = True):
         self.source = source
         self.multi_detectors = multi_detectors
-        self.capture = cv2.VideoCapture(source)
+        self.capture = cv2.VideoCapture(source, cv2.CAP_DSHOW)
         self.capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
         self.show = show
 
         if not self.capture.isOpened():
             raise ValueError(f"Cannot open video source {source}")
         
-    def start(self, callback: Optional[CenterCallback] = None):
+    def start(self, callback: Optional[CenterCallback] = None, record: bool = False):
+        video_writer = None
+        if record:
+            # Get the frame width and height
+            frame_width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+            frame_height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fourcc = cv2.VideoWriter_fourcc(*'XVID',) # type: ignore[no-untyped-call]
+            video_writer = cv2.VideoWriter("out.avi", fourcc, 20.0, (frame_width, frame_height))
+
         while True:
             ret, frame = self.capture.read()
             if not ret:
@@ -40,10 +48,15 @@ class Stream:
             if callback:
                 callback(all_detections)
 
+            if record and video_writer:
+                video_writer.write(frame)
+
             if self.show:
                 cv2.imshow("Frame", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
+        
+        if video_writer:
+            video_writer.release()
         self.capture.release()
         cv2.destroyAllWindows()

@@ -4,14 +4,14 @@ import numpy as np
 
 
 
-vs = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+vs = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 # low exposure
 
-vs.set(cv2.CAP_PROP_EXPOSURE, -5)
+vs.set(cv2.CAP_PROP_EXPOSURE, -7)
 lower_red = np.array([0, 178, 100])
-upper_red = np.array([255, 255, 255])
+upper_red = np.array([255, 255, 100])
 lower_blue = np.array([100, 100, 100])
-upper_blue = np.array([140, 255, 255])
+upper_blue = np.array([140, 255, 100])
 
 
 class HSVColor:
@@ -51,10 +51,10 @@ class HSVTrackbar:
         self.lower = lower
         self.upper = upper
         cv2.namedWindow(window_name)
-        cv2.createTrackbar("Lower H", window_name, lower.h, 255, self.update_lower_h)
+        cv2.createTrackbar("Lower H", window_name, lower.h, 179, self.update_lower_h)
         cv2.createTrackbar("Lower S", window_name, lower.s, 255, self.update_lower_s)
         cv2.createTrackbar("Lower V", window_name, lower.v, 255, self.update_lower_v)
-        cv2.createTrackbar("Upper H", window_name, upper.h, 255, self.update_upper_h)
+        cv2.createTrackbar("Upper H", window_name, upper.h, 179, self.update_upper_h)
         cv2.createTrackbar("Upper S", window_name, upper.s, 255, self.update_upper_s)
         cv2.createTrackbar("Upper V", window_name, upper.v, 255, self.update_upper_v)
     def update_lower_h(self, value: int):
@@ -72,10 +72,10 @@ class HSVTrackbar:
     
     
 
-reds = HSVColorRange(HSVColor(0, 178, 100), HSVColor(255, 255, 255))
+reds = HSVColorRange(HSVColor(0, 0, 0), HSVColor(179, 255, 255))
 red_trackbar = HSVTrackbar("Red", reds.lower, reds.upper)
 
-blues = HSVColorRange(HSVColor(100, 100, 100), HSVColor(140, 255, 255))
+blues = HSVColorRange(HSVColor(0, 0, 0), HSVColor(179, 255, 255))
 blue_trackbar = HSVTrackbar("Blue", blues.lower, blues.upper)
 
 

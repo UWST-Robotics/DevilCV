@@ -1,8 +1,8 @@
 import numpy as np
-
+from typing import Mapping
 class HSVColor:
     def __init__(self, h: int, s: int, v: int):
-        self.hsv = np.array([h, s, v], dtype=np.uint8)
+        self.hsv = np.array([h, s, v], dtype=np.uint16)
 
     @property
     def h(self):
@@ -31,4 +31,6 @@ class HSVColorRange:
         return self.lower.hsv
     def get_upper(self):
         return self.upper.hsv
+    
+type DetectorDict = Mapping[str, list[HSVColorRange] | HSVColorRange]
     
