@@ -42,11 +42,12 @@ class Stream:
                 all_detections[multi_detector.name] = detections_dict
 
                 for name, detections in detections_dict.items():
-                    for detection in detections:
-                        x, y, w, h = detection.bounding_box
-                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        cv2.putText(frame, f"{name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                        cv2.circle(frame, detection.center, 5, (0, 0, 255), -1)
+                    if len(detections) == 0:
+                        continue
+                    x, y, w, h = detections[0].bounding_box
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.putText(frame, f"{name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    cv2.circle(frame, detections[0].center, 5, (0, 0, 255), -1)
 
 
                         
