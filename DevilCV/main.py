@@ -18,29 +18,39 @@ def main():
     stream = Stream(source=0, exposure=-6, multi_detectors=[multi_detector], show=True)
 
     def callback(center_detections: Detections):
-        # red_center_x = center_detections['MultiColorDetector']['Red'][0].center[0] if 'Red' in center_detections['MultiColorDetector'] else None
-        # red_edge_x = center_detections['MultiColorDetector']['Red'][0].bounding_box[0] if 'Red' in center_detections['MultiColorDetector'] else None
-        # blue_center_x = center_detections['MultiColorDetector']['Blue'][0].center[0] if 'Blue' in center_detections['MultiColorDetector'] else None
-        # blue_edge_x = center_detections['MultiColorDetector']['Blue'][0].bounding_box[0] if 'Blue' in center_detections['MultiColorDetector'] else None
+        red_detections = center_detections['MultiColorDetector']['Red'] if 'Red' in center_detections['MultiColorDetector'] else []
+        blue_detections = center_detections['MultiColorDetector']['Blue'] if 'Blue' in center_detections['MultiColorDetector'] else []
         
-        # red_center_x, _ = top_left_to_center_relative(red_center_x, 0, stream.resolution) if red_center_x is not None else (None, None)
-        # red_edge_x, _ = top_left_to_center_relative(red_edge_x, 0, stream.resolution) if red_edge_x is not None else (None, None)
-        # blue_center_x, _ = top_left_to_center_relative(blue_center_x, 0, stream.resolution) if blue_center_x is not None else (None, None)
-        # blue_edge_x, _ = top_left_to_center_relative(blue_edge_x, 0, stream.resolution) if blue_edge_x is not None else (None, None)
+        if len(red_detections) == 0: 
+            red_center_x = None
+            red_edge_x = None
+        else:
+            red_center_x = red_detections[0].center[0]
+            red_edge_x = red_detections[0].bounding_box[0]
 
-        # # send only non-null values to the bridge
-        # values = {}
-        # if red_center_x is not None:
-        #     values['vision/color/red/center_x'] = red_center_x
-        # if red_edge_x is not None:
-        #     values['vision/color/red/edge_x'] = red_edge_x
-        # if blue_center_x is not None:
-        #     values['vision/color/blue/center_x'] = blue_center_x
-        # if blue_edge_x is not None:
-        #     values['vision/color/blue/edge_x'] = blue_edge_x
-        print(center_detections)
+        if len(blue_detections) == 0:
+            blue_center_x = None
+            blue_edge_x = None
+        else:
+            blue_center_x = blue_detections[0].center[0]
+            blue_edge_x = blue_detections[0].bounding_box[0]
 
-        # bridge.set_values(values)
+        red_center_x, _ = top_left_to_center_relative(red_center_x, 0, stream.resolution) if red_center_x is not None else (None, None)
+        red_edge_x, _ = top_left_to_center_relative(red_edge_x, 0, stream.resolution) if red_edge_x is not None else (None, None)
+        blue_center_x, _ = top_left_to_center_relative(blue_center_x, 0, stream.resolution) if blue_center_x is not None else (None, None)
+        blue_edge_x, _ = top_left_to_center_relative(blue_edge_x, 0, stream.resolution) if blue_edge_x is not None else (None, None)
+
+        values = {}
+        if red_center_x is not None:
+            values['vision/color/red/center_x'] = red_center_x
+        if red_edge_x is not None:
+            values['vision/color/red/edge_x'] = red_edge_x
+        if blue_center_x is not None:
+            values['vision/color/blue/center_x'] = blue_center_x
+        if blue_edge_x is not None:
+            values['vision/color/blue/edge_x'] = blue_edge_x
+        print(values)
+
 
     stream.start(callback, record=True)
 
