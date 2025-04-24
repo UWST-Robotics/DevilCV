@@ -32,5 +32,5 @@ class HSVColorRange:
     def get_upper(self):
         return self.upper.hsv
     
-type DetectorDict = Mapping[str, list[HSVColorRange] | HSVColorRange]
+DetectorDict = Mapping[str, list[HSVColorRange] | HSVColorRange]
     

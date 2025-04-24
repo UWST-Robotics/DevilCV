@@ -11,6 +11,7 @@ class Stream:
         self.capture = cv2.VideoCapture(source, cv2.CAP_DSHOW)
         self.capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
         self.show = show
+        self.resolution = (int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
         if not self.capture.isOpened():
             raise ValueError(f"Cannot open video source {source}")

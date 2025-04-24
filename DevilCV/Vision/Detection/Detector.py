@@ -3,9 +3,9 @@ from typing import List, Sequence
 import cv2.typing
 from DevilCV.utils.custom_types.Detection import Detection
 
-type Contours = Sequence[cv2.typing.MatLike]
-type Mask = cv2.typing.MatLike
-type Center = tuple[int, int]
+Contours = Sequence[cv2.typing.MatLike]
+Mask = cv2.typing.MatLike
+Center = tuple[int, int]
 
 class Detector(ABC):
     name: str
