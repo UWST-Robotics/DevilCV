@@ -2,13 +2,18 @@ import cv2
 from DevilCV.Vision.Detection.MultiColorDetector import MultiDetector
 from typing import Optional
 from DevilCV.utils.custom_types.Detection import CenterCallback
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+
+CAPTURE_API = cv2.CAP_ANY if os.getenv("DEVICE", "pi") == "pi" else cv2.CAP_DSHOW 
 
 class Stream:
     def __init__(self, source: int, exposure: int, multi_detectors: list[MultiDetector], show: bool = True):
         self.source = source
         self.multi_detectors = multi_detectors
-        self.capture = cv2.VideoCapture(source, cv2.CAP_DSHOW)
+        self.capture = cv2.VideoCapture(source, CAPTURE_API)
         self.capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
         self.show = show
         self.resolution = (int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
