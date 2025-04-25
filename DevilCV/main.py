@@ -4,6 +4,14 @@ from DevilCV.utils.custom_types.Color import HSVColorRange, HSVColor
 from DevilCV.utils.custom_types.Detection import Detections
 from DevilCV.Bridge.Bridge import Bridge
 from DevilCV.utils.coordinates import top_left_to_center_relative
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+VEXBRIDGE_HOST = os.getenv("VEXBRIDGE_HOST", "localhost")
+VEXBRIDGE_PORT = int(os.getenv("VEXBRIDGE_PORT", 8000))
+CAMERA_EXPOSURE = int(os.getenv("CAMERA_EXPOSURE", -6))
 
 def main():
 
@@ -14,8 +22,8 @@ def main():
 
     multi_detector = MultiColorDetector(detectors, 1000)
 
-    bridge = Bridge("localhost", 8000)
-    stream = Stream(source=0, exposure=-6, multi_detectors=[multi_detector], show=True)
+    bridge = Bridge(host=VEXBRIDGE_HOST, port=VEXBRIDGE_PORT)
+    stream = Stream(source=0, exposure=CAMERA_EXPOSURE, multi_detectors=[multi_detector], show=True)
 
     def callback(center_detections: Detections):
         red_detections = center_detections['MultiColorDetector']['Red'] if 'Red' in center_detections['MultiColorDetector'] else []
