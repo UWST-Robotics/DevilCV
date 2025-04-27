@@ -45,9 +45,10 @@ class Stream:
                     if len(detections) == 0:
                         continue
                     x, y, w, h = detections[0].bounding_box
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                    cv2.putText(frame, f"{name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                    cv2.circle(frame, detections[0].center, 5, (0, 0, 255), -1)
+                    if self.show:
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        cv2.putText(frame, f"{name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                        cv2.circle(frame, detections[0].center, 5, (0, 0, 255), -1)
 
 
                         
