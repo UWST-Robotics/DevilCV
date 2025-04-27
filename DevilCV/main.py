@@ -49,6 +49,7 @@ def main():
         blue_edge_x, _ = top_left_to_center_relative(blue_edge_x, 0, stream.resolution) if blue_edge_x is not None else (None, None)
 
         values = {}
+
         if red_center_x is not None:
             values['vision/color/red/center_x'] = red_center_x
         if red_edge_x is not None:
@@ -57,7 +58,10 @@ def main():
             values['vision/color/blue/center_x'] = blue_center_x
         if blue_edge_x is not None:
             values['vision/color/blue/edge_x'] = blue_edge_x
-        print(values)
+        values['vision/hasTarget'] = len(values) > 0
+
+        
+        bridge.set_values(values)
 
 
     stream.start(callback, record=True)
