@@ -1,50 +1,17 @@
 import cv2
 import imutils
-import numpy as np
+from DevilCV.utils.custom_types.Color import HSVColor, HSVColorRange
+from DevilCV.Vision.Detection.MultiColorDetector import MultiColorDetector
 
+detectors = {
+    "Red": [HSVColorRange(HSVColor(160, 100, 100), HSVColor(179, 255, 255)), HSVColorRange(HSVColor(0, 100, 100), HSVColor(20, 255, 255))],
+    "Blue": [HSVColorRange(HSVColor(100, 100, 92), HSVColor(124, 255, 255))],
+}
 
+multi_detector = MultiColorDetector(detectors, 1000)
 
-vs = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-# low exposure
+vs = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 
-vs.set(cv2.CAP_PROP_EXPOSURE, -7)
-lower_red = np.array([0, 178, 100])
-upper_red = np.array([255, 255, 100])
-lower_blue = np.array([100, 100, 100])
-upper_blue = np.array([140, 255, 100])
-
-
-class HSVColor:
-    def __init__(self, h: int, s: int, v: int):
-        self.hsv = np.array([h, s, v], dtype=np.uint8)
-
-    @property
-    def h(self):
-        return self.hsv[0]
-    @h.setter
-    def h(self, value: int):
-        self.hsv[0] = value
-    @property
-    def s(self):
-        return self.hsv[1]
-    @s.setter
-    def s(self, value: int):
-        self.hsv[1] = value
-    @property
-    def v(self):
-        return self.hsv[2]
-    @v.setter
-    def v(self, value: int):
-        self.hsv[2] = value
-
-class HSVColorRange:
-    def __init__(self, lower: HSVColor, upper: HSVColor):
-        self.lower = lower
-        self.upper = upper
-    def get_lower(self):
-        return self.lower.hsv
-    def get_upper(self):
-        return self.upper.hsv
     
 class HSVTrackbar:
     def __init__(self, window_name: str, lower: HSVColor, upper: HSVColor):
@@ -72,8 +39,9 @@ class HSVTrackbar:
     
     
 
-reds = HSVColorRange(HSVColor(0, 0, 0), HSVColor(179, 255, 255))
-red_trackbar = HSVTrackbar("Red", reds.lower, reds.upper)
+
+red_1_trackbar = HSVTrackbar("Red", detectors["Red"][0].lower, detectors["Red"][0].upper)
+red_2_trackbar = HSVTrackbar("Red", detectors["Red"][1].lower, detectors["Red"][1].upper)
 
 blues = HSVColorRange(HSVColor(0, 0, 0), HSVColor(179, 255, 255))
 blue_trackbar = HSVTrackbar("Blue", blues.lower, blues.upper)
@@ -82,73 +50,32 @@ blue_trackbar = HSVTrackbar("Blue", blues.lower, blues.upper)
 while True:
     ret, frame = vs.read()
     frame = imutils.resize(frame, width=400)
-    blurred = cv2.GaussianBlur(frame, (5, 5), 0)
+    blurred = cv2.GaussianBlur(frame, (41, 41), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+    contours, masks = multi_detector.multimask(hsv)
 
-    red_mask = cv2.inRange(hsv, reds.lower.hsv, reds.upper.hsv)
-    red_mask = cv2.erode(red_mask, None, iterations=2) # type: ignore
-    red_mask = cv2.dilate(red_mask, None, iterations=2) # type: ignore
+    # draw contours and masks
+    for name, mask in masks.items():
+        cv2.imshow(f"{name} Mask", mask)
+        for contour in contours[name]:
+            cv2.drawContours(frame, [contour], -1, (0, 255, 0), 2)
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+                cv2.circle(frame, (cX, cY), 7, (255, 0, 0), -1)
+                cv2.putText(frame, f"{name}", (cX - 20, cY - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                
 
-    
-
-    
-
-    cnts = cv2.findContours(red_mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    # draw the contours on the frame
-
-    filtered_cnts = [c for c in cnts if cv2.contourArea(c) > 300]
-
-    cv2.drawContours(frame, filtered_cnts, -1, (255, 0, 0), 3)
-    center = None
-
-    for c in filtered_cnts:
-        M = cv2.moments(c)
-        if M["m00"] > 0:
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-            cv2.circle(frame, center, 5, (0, 255, 0), -1)
-            # reactangle around the contour
-            x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, "Red", (int(center[0]), int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 0, 0], 2)
-
-
-    
-
-
-
-    blue_mask = cv2.inRange(hsv, blues.lower.hsv, blues.upper.hsv)
-    blue_mask = cv2.erode(blue_mask, None, iterations=2) # type: ignore
-    blue_mask = cv2.dilate(blue_mask, None, iterations=2) # type: ignore
-
-    cnts = cv2.findContours(blue_mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    # draw the contours on the frame
-
-    filtered_cnts = [c for c in cnts if cv2.contourArea(c) > 300]
-
-    cv2.drawContours(frame, filtered_cnts, -1, (255, 0, 0), 3)
-    center = None
-
-    for c in filtered_cnts:
-        M = cv2.moments(c)
-        if M["m00"] > 0:
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-            cv2.circle(frame, center, 5, (0, 255, 0), -1)
-            # reactangle around the contour
-            x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, "Blue", (int(center[0]), int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 0, 0], 2)
-
-    cv2.imshow("Red Mask", red_mask)
-    cv2.imshow("Blue Mask", blue_mask)
+    # draw the original frame with contours
     cv2.imshow("Frame", frame)
-    # show some sliders to tune lower red and upper red
+    cv2.imshow("HSV", hsv)
+    cv2.imshow("Blurred", blurred)
+    cv2.imshow("Red Mask", masks["Red"])
+    cv2.imshow("Blue Mask", masks["Blue"])
 
-    
 
     key = cv2.waitKey(1) & 0xFF
-
     if key == ord("q"):
         break
 
