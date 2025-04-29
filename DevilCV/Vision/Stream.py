@@ -13,7 +13,7 @@ class Stream:
     def __init__(self, source: int, exposure: float, multi_detectors: list[MultiDetector], invert: bool = False, show: bool = True):
         self.source = source
         self.multi_detectors = multi_detectors
-        self.capture = cv2.VideoCapture(source, CAPTURE_API)
+        self.capture = cv2.VideoCapture(source, cv2.CAP_ANY)
         self.capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
         self.invert = invert
     
