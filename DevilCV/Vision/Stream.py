@@ -10,11 +10,13 @@ load_dotenv()
 CAPTURE_API = cv2.CAP_ANY if os.getenv("DEVICE", "pi") == "pi" else cv2.CAP_DSHOW 
 
 class Stream:
-    def __init__(self, source: int, exposure: int, multi_detectors: list[MultiDetector], show: bool = True):
+    def __init__(self, source: int, exposure: float, multi_detectors: list[MultiDetector], invert: bool = False, show: bool = True):
         self.source = source
         self.multi_detectors = multi_detectors
         self.capture = cv2.VideoCapture(source, CAPTURE_API)
         self.capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
+        self.invert = invert
+    
         self.show = show
         self.resolution = (int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
@@ -35,6 +37,9 @@ class Stream:
             if not ret:
                 break
 
+            if self.invert:
+                frame = cv2.rotate(frame, cv2.ROTATE_180)
+            frame = cv2.GaussianBlur(frame, (31, 31), 0)
             hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             all_detections = {}
             for multi_detector in self.multi_detectors:
