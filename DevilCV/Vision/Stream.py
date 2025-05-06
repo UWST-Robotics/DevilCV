@@ -2,20 +2,27 @@ import cv2
 from DevilCV.Vision.Detection.MultiColorDetector import MultiDetector
 from typing import Optional
 from DevilCV.utils.custom_types.Detection import CenterCallback
+from mjpeg_streamer import MjpegServer, Stream as MjpegStream
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
 CAPTURE_API = cv2.CAP_ANY if os.getenv("DEVICE", "pi") == "pi" else cv2.CAP_DSHOW 
+stream = MjpegStream("DevilCV", size=(640, 480), quality=50, fps=30) 
 
+server = MjpegServer("localhost", 8080)
+server.add_stream(stream) 
+server.start()
 class Stream:
     def __init__(self, source: int, exposure: float, multi_detectors: list[MultiDetector], invert: bool = False, show: bool = True):
         self.source = source
         self.multi_detectors = multi_detectors
-        self.capture = cv2.VideoCapture(source, cv2.CAP_ANY)
+        self.capture = cv2.VideoCapture(source, CAPTURE_API)
         self.capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
         self.invert = invert
+
+        
     
         self.show = show
         self.resolution = (int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
@@ -39,8 +46,9 @@ class Stream:
 
             if self.invert:
                 frame = cv2.rotate(frame, cv2.ROTATE_180)
-            frame = cv2.GaussianBlur(frame, (31, 31), 0)
-            hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            blurred_frame = cv2.GaussianBlur(frame, (21, 21), 0)
+            # frame = cv2.cvtColor(blurred_frame, cv2.COLOR_BGR2RGB)
+            hsv_frame = cv2.cvtColor(blurred_frame, cv2.COLOR_BGR2HSV)
             all_detections = {}
             for multi_detector in self.multi_detectors:
                 detections_dict = multi_detector.multidetect(hsv_frame)
@@ -65,7 +73,7 @@ class Stream:
                 video_writer.write(frame)
 
             if self.show:
-                cv2.imshow("Frame", frame)
+                stream.set_frame(frame) 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         
