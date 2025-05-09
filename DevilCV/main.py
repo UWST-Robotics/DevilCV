@@ -29,8 +29,6 @@ def main():
 
     multi_detector = MultiColorDetector(DEFAULT_DETECTORS, 1000)
 
-    server = Server(host=SERVER_HOST, port=SERVER_PORT)
-    bridge = Bridge(host=VEXBRIDGE_HOST, port=VEXBRIDGE_PORT)
     mpjeg_stream = MjpegStream("DevilCV", size=(640, 480), quality=50, fps=30)
     mpjeg_server = MjpegServer("localhost", 5001)
     mpjeg_server.add_stream(mpjeg_stream)
@@ -73,20 +71,16 @@ def main():
         values['vision/hasTarget'] = len(values) > 0
 
         print(values)
-        # bridge.set_values(values)
 
 
     mpjeg_server.start()
     # Create threads for the Flask server and the stream
-    flask_thread = threading.Thread(target=run_flask_server, args=(server, multi_detector))
     stream_thread = threading.Thread(target=run_stream, args=(stream, multi_detector, callback))
 
     # Start both threads
-    flask_thread.start()
     stream_thread.start()
 
     # Wait for both threads to finish
-    flask_thread.join()
     stream_thread.join()
 
 
