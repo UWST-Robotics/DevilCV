@@ -1,2 +1,3 @@
+cd ~/Documents/DevilCV
 source venv/bin/activate
 python3 -m DevilCV.main
