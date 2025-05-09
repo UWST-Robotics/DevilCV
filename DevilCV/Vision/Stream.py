@@ -8,29 +8,28 @@ import os
 
 load_dotenv()
 
-CAPTURE_API = cv2.CAP_ANY if os.getenv("DEVICE", "pi") == "pi" else cv2.CAP_DSHOW 
+CAPTURE_API = cv2.CAP_ANY #if os.getenv("DEVICE", "pi") == "pi" else cv2.CAP_DSHOW 
 stream = MjpegStream("DevilCV", size=(640, 480), quality=50, fps=30) 
 
 server = MjpegServer("localhost", 8080)
 server.add_stream(stream) 
 server.start()
 class Stream:
-    def __init__(self, source: int, exposure: float, multi_detectors: list[MultiDetector], invert: bool = False, show: bool = True):
+    def __init__(self, source: int, exposure: float, invert: bool = False, stream: Optional[MjpegStream] = None):
         self.source = source
-        self.multi_detectors = multi_detectors
         self.capture = cv2.VideoCapture(source, CAPTURE_API)
         self.capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
         self.invert = invert
+        self.stream = stream 
 
         
     
-        self.show = show
         self.resolution = (int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
         if not self.capture.isOpened():
             raise ValueError(f"Cannot open video source {source}")
         
-    def start(self, callback: Optional[CenterCallback] = None, record: bool = False):
+    def start(self, multi_detectors: list[MultiDetector], callback: Optional[CenterCallback] = None, record: bool = False):
         video_writer = None
         if record:
             # Get the frame width and height
@@ -50,7 +49,7 @@ class Stream:
             # frame = cv2.cvtColor(blurred_frame, cv2.COLOR_BGR2RGB)
             hsv_frame = cv2.cvtColor(blurred_frame, cv2.COLOR_BGR2HSV)
             all_detections = {}
-            for multi_detector in self.multi_detectors:
+            for multi_detector in multi_detectors:
                 detections_dict = multi_detector.multidetect(hsv_frame)
                 all_detections[multi_detector.name] = detections_dict
 
@@ -58,7 +57,7 @@ class Stream:
                     if len(detections) == 0:
                         continue
                     x, y, w, h = detections[0].bounding_box
-                    if self.show:
+                    if self.stream:
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         cv2.putText(frame, f"{name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                         cv2.circle(frame, detections[0].center, 5, (0, 0, 255), -1)
@@ -72,8 +71,9 @@ class Stream:
             if record and video_writer:
                 video_writer.write(frame)
 
-            if self.show:
-                stream.set_frame(frame) 
+            if self.stream:
+                self.stream.set_frame(frame)
+            # cv2.imshow("Stream", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         

@@ -34,4 +34,11 @@ class MultiColorDetector(MultiDetector, ColorDetector):
             centers[name].extend(local_centers)
         return centers
     
+    def multiupdate_color(self, name: str, color_range: List[HSVColorRange]):
+        for detector in self.detectors:
+            if detector.name == name:
+                detector.update_color(color_range)
+                break
+        else:
+            raise ValueError(f"Detector with name {name} not found")
     

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Sequence
 import cv2.typing
+from DevilCV.utils.custom_types.Color import HSVColorRange
 from DevilCV.utils.custom_types.Detection import Detection
 
 Contours = Sequence[cv2.typing.MatLike]
@@ -20,9 +21,13 @@ class Detector(ABC):
     
     def detect(self, hsv_frame: cv2.typing.MatLike) -> Sequence[Detection]:
         raise NotImplementedError("This method should be overridden in a subclass")
+    @abstractmethod
+    def update_color(self, color_range: List[HSVColorRange]):
+        raise NotImplementedError("This method should be overridden in a subclass")
     
 class MultiDetector(ABC):
     name: str
+    detectors: list[Detector]
     @abstractmethod
     def multimask(self, hsv_frame: cv2.typing.MatLike) -> tuple[dict[str, Contours], dict[str, Mask]]:
         raise NotImplementedError("This method should be overridden in a subclass")
@@ -32,5 +37,9 @@ class MultiDetector(ABC):
         raise NotImplementedError("This method should be overridden in a subclass")
 
     def multidetect(self, hsv_frame: cv2.typing.MatLike) -> dict[str, Sequence[Detection]]:
+        raise NotImplementedError("This method should be overridden in a subclass")
+    
+    @abstractmethod
+    def multiupdate_color(self, name: str, color_range: List[HSVColorRange]):
         raise NotImplementedError("This method should be overridden in a subclass")
     
